@@ -15,6 +15,8 @@ class Ads1256{
                               
       //metodos:
       void init();
+      float read8channel();
+      
     private:
       //atributos privados:
       
