@@ -274,5 +274,6 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
   }
 
 }
+return  adc_val[i];
 }
 
