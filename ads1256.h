@@ -11,11 +11,11 @@ class Ads1256{
       
       //constructores: 
       Ads1256(int cs, int rdy, int rst, int spispeed);
-      Ads1256(int p, int v);
+      //Ads1256(int p, int v);
                               
       //metodos:
       void init();
-      float read8channel();
+      unsigned long read8channel(unsigned long adc_val[8]);
       
     private:
       //atributos privados:

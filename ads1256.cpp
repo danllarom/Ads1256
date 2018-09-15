@@ -1,4 +1,5 @@
 #include "ads1256.h"
+#include <SPI.h>
 
 Ads1256::Ads1256(int c, int rd, int rs, int sp){
   int cs=c; // chip select
@@ -8,6 +9,8 @@ Ads1256::Ads1256(int c, int rd, int rs, int sp){
 }
 
 void Ads1256::init(){
+  
+  
   pinMode(cs, OUTPUT);
   digitalWrite(cs, LOW); // tied low is also OK.
   pinMode(rdy, INPUT);
@@ -20,6 +23,7 @@ void Ads1256::init(){
   SPI.begin(); //start the spi-bus
   delay(500);
   //init
+  
   while (digitalRead(rdy)) {}  // wait for ready_line to go low
   SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
   digitalWrite(cs, LOW);
@@ -52,6 +56,7 @@ Bit 1 BUFEN: Analog Input Buffer Enable
 Bit 0 DRDY: Data Ready (Read Only)
 This bit duplicates the state of the DRDY pin.
 **************************************************************************************************************/
+  
   byte status_reg = 0x00 ;  // address (datasheet p. 30)
   byte status_data = 0x01; // 01h = 0000 0 0 0 1 => status: Most Significant Bit First, Auto-Calibration Disabled, Analog Input Buffer Disabled
   //byte status_data = 0x07; // 01h = 0000 0 1 1 1 => status: Most Significant Bit First, Auto-Calibration Enabled, Analog Input Buffer Enabled
@@ -91,6 +96,7 @@ PGA SETTING
 06h = 110 = 64  ±78.125mV
 07h = 111 = 64  ±78.125mV
 **********************************************************************************************************************/
+ 
   byte adcon_reg = 0x02; //A/D Control Register (Address 02h)
   //byte adcon_data = 0x20; // 0 01 00 000 => Clock Out Frequency = fCLKIN, Sensor Detect OFF, gain 1
   byte adcon_data = 0x00; // 0 00 00 000 => Clock Out = Off, Sensor Detect OFF, gain 1
@@ -126,6 +132,7 @@ A1h = 10100001 = 1,000SPS
 03h = 00000011 = 2.5SPS
 (1) for fCLKIN = 7.68MHz. Data rates scale linearly with fCLKIN. 
  ***********************************************************************************************/
+ 
   byte drate_reg = 0x03; //DRATE: A/D Data Rate (Address 03h)
   byte drate_data = 0xF0; // F0h = 11110000 = 30,000SPS
   SPI.transfer(0x50 | drate_reg);
@@ -140,14 +147,11 @@ A1h = 10100001 = 1,000SPS
   SPI.endTransaction();
   
   while (!Serial && (millis ()  <=  5000));  // WAIT UP TO 5000 MILLISECONDS FOR SERIAL OUTPUT CONSOLE
-  Serial.println("configured, starting");
-  Serial.println("");
-  Serial.println("AIN0-AINCOM  AIN1-AINCOM  AIN2-AINCOM  AIN3-AINCOM  AIN4-AINCOM  AIN5-AINCOM  AIN6-AINCOM  AIN7-AINCOM");
+
 }
 
-float Ads1256::read8channel(){
+unsigned long Ads1256::read8channel(unsigned long adc_val[8]){
   //Single ended Measurements
-  unsigned long adc_val[8] = {0,0,0,0,0,0,0,0}; // store readings in array
   byte mux[8] = {0x08,0x18,0x28,0x38,0x48,0x58,0x68,0x78};
   
   int i = 0;
@@ -201,6 +205,7 @@ Data Byte(s): data to be written to the registers.
   //byte data = (channel << 4) | (1 << 3); //AIN-channel and AINCOM   // ********** Step 1 **********
   //byte data = (channel << 4) | (1 << 1)| (1); //AIN-channel and AINCOM   // ********** Step 1 **********
   //Serial.println(channel,HEX);
+  
   SPI.transfer(0x50 | 0x01); // 1st Command Byte: 0101 0001  0001 = MUX register address 01h
   SPI.transfer(0x00);     // 2nd Command Byte: 0000 0000  1-1=0 write one byte only
   SPI.transfer(channel);     // Data Byte(s): xxxx 1000  write the databyte to the register(s)
@@ -274,6 +279,6 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
   }
 
 }
-return  adc_val[i];
+//return  adc_val;
 }
 
