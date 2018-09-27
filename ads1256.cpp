@@ -155,7 +155,7 @@ A1h = 10100001 = 1,000SPS
 
 unsigned long Ads1256::read8channel(unsigned long adc_val[8]){
   //Single ended Measurements
-  byte mux[8] = {0x08,0x18,0x28,0x38,0x48,0x58,0x68,0x78};
+  
   
   int i = 0;
   
@@ -193,7 +193,7 @@ Step 4: When DRDY goes low again, repeat the cycle by first
 updating the multiplexer register, then reading the previous data.
 ***************************************************************************************/
   for (i=0; i <= 7; i++){         // read all 8 Single Ended Channels AINx-AINCOM
-  byte channel = mux[i];             // analog in channels # 
+  byte canal = mux[i];             // analog in channels # 
   Serial.println("antes dek while");
   while (digitalRead(rdy)) {
     yield(); //or delay(1);
@@ -213,7 +213,7 @@ Data Byte(s): data to be written to the registers.
   
   SPI.transfer(0x50 | 0x01); // 1st Command Byte: 0101 0001  0001 = MUX register address 01h
   SPI.transfer(0x00);     // 2nd Command Byte: 0000 0000  1-1=0 write one byte only
-  SPI.transfer(channel);     // Data Byte(s): xxxx 1000  write the databyte to the register(s)
+  SPI.transfer(canal);     // Data Byte(s): xxxx 1000  write the databyte to the register(s)
   delayMicroseconds(2);
 
   //SYNC command 1111 1100                               // ********** Step 2 **********
@@ -267,6 +267,7 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
 
   //Serial.println(micros()-periodo);
   //periodo=micros();
+  yield();
   }                                // Repeat for each channel ********** Step 4 **********
   
   digitalWrite(cs, HIGH);

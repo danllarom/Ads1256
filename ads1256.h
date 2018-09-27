@@ -28,4 +28,7 @@ class Ads1256{
       //byte adcon_data = 0x01;   // 0 00 00 001 => Clock Out = Off, Sensor Detect OFF, gain 2
       byte drate_reg = 0x03; //DRATE: A/D Data Rate (Address 03h)
       byte drate_data = 0xF0; // F0h = 11110000 = 30,000SPS
+      byte mux[8] = {0x08,0x18,0x28,0x38,0x48,0x58,0x68,0x78};
+      
+      
 };
