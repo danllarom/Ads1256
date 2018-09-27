@@ -1,11 +1,11 @@
 #include "ads1256.h"
 #include <SPI.h>
 
-Ads1256 adread(D8, D3, D2, 5000000);
+Ads1256 adread(D8, D3, D2, 2500000);
 
 
 void setup() {
-   
+   SPI.begin();
    Serial.begin(115200);
    adread.init();
    

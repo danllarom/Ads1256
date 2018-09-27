@@ -6,25 +6,33 @@ Ads1256::Ads1256(int c, int rd, int rs, int sp){
   int rdy=rd; // data ready, input
   int rst=rs; // may omit
   int spispeed=sp;
+  pinMode(cs, OUTPUT);
+  pinMode(rdy, INPUT);
+  pinMode(rst, OUTPUT);
+  
 }
 
 void Ads1256::init(){
   
   
-  pinMode(cs, OUTPUT);
+  
   digitalWrite(cs, LOW); // tied low is also OK.
-  pinMode(rdy, INPUT);
-  pinMode(rst, OUTPUT);
+
   digitalWrite(rst, LOW);
   delay(1); // LOW at least 4 clock cycles of onboard clock. 100 microseconds is enough
   digitalWrite(rst, HIGH); // now reset to default values
   
   delay(500);
-  SPI.begin(); //start the spi-bus
+  //SPI.begin(); //start the spi-bus
   delay(500);
   //init
   
-  while (digitalRead(rdy)) {}  // wait for ready_line to go low
+
+  while (digitalRead(rdy)) { // wait for ready_line to go low
+    yield(); //or delay(1);
+    } 
+  
+  
   SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
   digitalWrite(cs, LOW);
   delayMicroseconds(100);
@@ -32,6 +40,8 @@ void Ads1256::init(){
   //Reset to Power-Up Values (FEh)
   SPI.transfer(0xFE);
   delay(5);
+  
+
 
 /******************************************************************************************************************
 STATUS : STATUS REGISTER (ADDRESS 00h)
@@ -56,15 +66,11 @@ Bit 1 BUFEN: Analog Input Buffer Enable
 Bit 0 DRDY: Data Ready (Read Only)
 This bit duplicates the state of the DRDY pin.
 **************************************************************************************************************/
-  
-  byte status_reg = 0x00 ;  // address (datasheet p. 30)
-  byte status_data = 0x01; // 01h = 0000 0 0 0 1 => status: Most Significant Bit First, Auto-Calibration Disabled, Analog Input Buffer Disabled
-  //byte status_data = 0x07; // 01h = 0000 0 1 1 1 => status: Most Significant Bit First, Auto-Calibration Enabled, Analog Input Buffer Enabled
   SPI.transfer(0x50 | status_reg);
   SPI.transfer(0x00);   // 2nd command byte, write one register only
   SPI.transfer(status_data);   // write the databyte to the register
   delayMicroseconds(100);
-  
+   
 /***************************************************************************************************************
 ADCON: A/D Control Register (Address 02h)
 Reset Value = 20h
@@ -97,10 +103,7 @@ PGA SETTING
 07h = 111 = 64  ±78.125mV
 **********************************************************************************************************************/
  
-  byte adcon_reg = 0x02; //A/D Control Register (Address 02h)
-  //byte adcon_data = 0x20; // 0 01 00 000 => Clock Out Frequency = fCLKIN, Sensor Detect OFF, gain 1
-  byte adcon_data = 0x00; // 0 00 00 000 => Clock Out = Off, Sensor Detect OFF, gain 1
-  //byte adcon_data = 0x01;   // 0 00 00 001 => Clock Out = Off, Sensor Detect OFF, gain 2
+
   SPI.transfer(0x50 | adcon_reg);  // 52h = 0101 0010
   SPI.transfer(0x00);              // 2nd command byte, write one register only
   SPI.transfer(adcon_data);        // write the databyte to the register
@@ -133,8 +136,6 @@ A1h = 10100001 = 1,000SPS
 (1) for fCLKIN = 7.68MHz. Data rates scale linearly with fCLKIN. 
  ***********************************************************************************************/
  
-  byte drate_reg = 0x03; //DRATE: A/D Data Rate (Address 03h)
-  byte drate_data = 0xF0; // F0h = 11110000 = 30,000SPS
   SPI.transfer(0x50 | drate_reg);
   SPI.transfer(0x00);   // 2nd command byte, write one register only
   SPI.transfer(drate_data);   // write the databyte to the register
@@ -146,7 +147,9 @@ A1h = 10100001 = 1,000SPS
   digitalWrite(cs, HIGH);
   SPI.endTransaction();
   
-  while (!Serial && (millis ()  <=  5000));  // WAIT UP TO 5000 MILLISECONDS FOR SERIAL OUTPUT CONSOLE
+  while (!Serial && (millis ()  <=  5000)){
+    yield(); //or delay(1);
+    };  // WAIT UP TO 5000 MILLISECONDS FOR SERIAL OUTPUT CONSOLE
 
 }
 
@@ -155,7 +158,7 @@ unsigned long Ads1256::read8channel(unsigned long adc_val[8]){
   byte mux[8] = {0x08,0x18,0x28,0x38,0x48,0x58,0x68,0x78};
   
   int i = 0;
-
+  
   SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
   digitalWrite(cs, LOW);
   delayMicroseconds(2);
@@ -191,8 +194,10 @@ updating the multiplexer register, then reading the previous data.
 ***************************************************************************************/
   for (i=0; i <= 7; i++){         // read all 8 Single Ended Channels AINx-AINCOM
   byte channel = mux[i];             // analog in channels # 
-  
-  while (digitalRead(rdy)) {} ;                          
+  Serial.println("antes dek while");
+  while (digitalRead(rdy)) {
+    yield(); //or delay(1);
+    }                          
 
 /*
  WREG: Write to Register
