@@ -2,10 +2,10 @@
 #include <SPI.h>
 
 Ads1256::Ads1256(int c, int rd, int rs, int sp){
-  int cs=c; // chip select
-  int rdy=rd; // data ready, input
-  int rst=rs; // may omit
-  int spispeed=sp;
+  cs=c; // chip select
+  rdy=rd; // data ready, input
+  rst=rs; // may omit
+  spispeed=sp;
 }
 
 void Ads1256::init(){
