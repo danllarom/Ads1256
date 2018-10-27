@@ -97,7 +97,7 @@ PGA SETTING
 07h = 111 = 64  ±78.125mV
 **********************************************************************************************************************/
  
-  byte adcon_reg = 0x02; //A/D Control Register (Address 02h)
+  byte adcon_reg = 0x02; //A/D Control Register (Address 02h)(datasheet p. 31)
   //byte adcon_data = 0x20; // 0 01 00 000 => Clock Out Frequency = fCLKIN, Sensor Detect OFF, gain 1
   byte adcon_data = 0x00; // 0 00 00 000 => Clock Out = Off, Sensor Detect OFF, gain 1
   //byte adcon_data = 0x01;   // 0 00 00 001 => Clock Out = Off, Sensor Detect OFF, gain 2
@@ -282,3 +282,94 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
 //return  adc_val;
 }
 
+
+unsigned long Ads1256::read1channel(int channel_ad){
+
+  unsigned long adc_val=0;
+  byte mux[8] = {0x08,0x18,0x28,0x38,0x48,0x58,0x68,0x78};
+  
+  int i = channel_ad;
+
+  SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
+  digitalWrite(cs, LOW);
+  delayMicroseconds(2);
+
+  byte channel = mux[i];             // analog in channels # 
+  
+  while (digitalRead(rdy)) {} ;                          
+
+/*
+ WREG: Write to Register
+Description: Write to the registers starting with the register specified as part of the command. The number of registers that
+will be written is one plus the value of the second byte in the command.
+1st Command Byte: 0101 rrrr where rrrr is the address to the first register to be written.
+2nd Command Byte: 0000 nnnn where nnnn is the number of bytes to be written – 1.
+Data Byte(s): data to be written to the registers. 
+ */
+  //byte data = (channel << 4) | (1 << 3); //AIN-channel and AINCOM   // ********** Step 1 **********
+  //byte data = (channel << 4) | (1 << 1)| (1); //AIN-channel and AINCOM   // ********** Step 1 **********
+  //Serial.println(channel,HEX);
+  
+  SPI.transfer(0x50 | 0x01); // 1st Command Byte: 0101 0001  0001 = MUX register address 01h
+  SPI.transfer(0x00);     // 2nd Command Byte: 0000 0000  1-1=0 write one byte only
+  SPI.transfer(channel);     // Data Byte(s): xxxx 1000  write the databyte to the register(s)
+  delayMicroseconds(2);
+
+  //SYNC command 1111 1100                               // ********** Step 2 **********
+  SPI.transfer(0xFC);
+  delayMicroseconds(2);
+
+  //while (!digitalRead(rdy)) {} ;
+  //WAKEUP 0000 0000
+  SPI.transfer(0x00);
+  delayMicroseconds(2);   // Allow settling time
+
+/*
+MUX : Input Multiplexer Control Register (Address 01h)
+Reset Value = 01h
+BIT 7    BIT 6    BIT 5    BIT 4    BIT 3    BIT 2    BIT 1    BIT 0
+PSEL3    PSEL2    PSEL1    PSEL0    NSEL3    NSEL2    NSEL1    NSEL0
+Bits 7-4 PSEL3, PSEL2, PSEL1, PSEL0: Positive Input Channel (AINP) Select
+0000 = AIN0 (default)
+0001 = AIN1
+0010 = AIN2 (ADS1256 only)
+0011 = AIN3 (ADS1256 only)
+0100 = AIN4 (ADS1256 only)
+0101 = AIN5 (ADS1256 only)
+0110 = AIN6 (ADS1256 only)
+0111 = AIN7 (ADS1256 only)
+1xxx = AINCOM (when PSEL3 = 1, PSEL2, PSEL1, PSEL0 are “don’t care”)
+NOTE: When using an ADS1255 make sure to only select the available inputs.
+
+Bits 3-0 NSEL3, NSEL2, NSEL1, NSEL0: Negative Input Channel (AINN)Select
+0000 = AIN0
+0001 = AIN1 (default)
+0010 = AIN2 (ADS1256 only)
+0011 = AIN3 (ADS1256 only)
+0100 = AIN4 (ADS1256 only)
+0101 = AIN5 (ADS1256 only)
+0110 = AIN6 (ADS1256 only)
+0111 = AIN7 (ADS1256 only)
+1xxx = AINCOM (when NSEL3 = 1, NSEL2, NSEL1, NSEL0 are “don’t care”)
+NOTE: When using an ADS1255 make sure to only select the available inputs.
+ */
+
+  SPI.transfer(0x01); // Read Data 0000  0001 (01h)       // ********** Step 3 **********
+  delayMicroseconds(5);
+  
+  adc_val = SPI.transfer(0);
+  adc_val <<= 8; //shift to left
+  adc_val |= SPI.transfer(0);
+  adc_val <<= 8;
+  adc_val |= SPI.transfer(0);
+  delayMicroseconds(2);
+    
+  digitalWrite(cs, HIGH);
+  SPI.endTransaction();
+  
+  if(adc_val > 0x7fffff){   //if MSB == 1
+    adc_val = adc_val-16777216; //do 2's complement
+  }
+  return adc_val;
+  }
+  

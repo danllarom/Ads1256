@@ -15,8 +15,11 @@ void loop() {
   
   int i = 0;
   unsigned long val[8] = {0,0,0,0,0,0,0,0};
+  unsigned long val1=0;
+  
   
   adread.read8channel(val);
+  val1=adread.read1channel(4);
 
   for (i=0; i <= 7; i++){  
     Serial.print(val[i]);   
@@ -24,6 +27,7 @@ void loop() {
 
   }
   Serial.println();
+  Serial.println(val1);
   //delay(250);
   
 }

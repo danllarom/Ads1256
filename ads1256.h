@@ -16,6 +16,7 @@ class Ads1256{
       //metodos:
       void init();
       unsigned long read8channel(unsigned long adc_val[8]);
+      unsigned long read1channel(int channel_ad);
       
     private:
       //atributos privados:
