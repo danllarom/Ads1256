@@ -21,4 +21,8 @@ class Ads1256{
     private:
       //atributos privados:
       
+      
+      //metodos:
+      unsigned long readchannel(int channel_p, int channel_n, int datarate, int gain, int clockout, int sensorcurrent);
+      
 };
