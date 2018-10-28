@@ -14,7 +14,7 @@ class Ads1256{
       //Ads1256(int p, int v);
                               
       //metodos:
-      void init();
+      void init(int datarate, int gain, int clockout, int sensorcurrent);
       unsigned long read8channel(unsigned long adc_val[8]);
       unsigned long read1channel(int channel_ad);
       
@@ -23,6 +23,6 @@ class Ads1256{
       
       
       //metodos:
-      unsigned long readchannel(int channel_p, int channel_n, int datarate, int gain, int clockout, int sensorcurrent);
+      unsigned long readchannel(int channel_p, int channel_n);
       
 };
