@@ -14,8 +14,8 @@ void setup() {
 void loop() {
   
   int i = 0;
-  unsigned long val[8] = {0,0,0,0,0,0,0,0};
-  unsigned long val1=0;
+  float val[8] = {0,0,0,0,0,0,0,0};
+  float val1=0;
   
   
   adread.read8channel(val);

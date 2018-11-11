@@ -176,6 +176,12 @@ float Ads1256::read1channel(int channel_ad){
   return adc_val;
 }
 
+float Ads1256::diffread1channel(int channel_p, int channel_n){
+  float adc_val=0;
+  adc_val=readchannel(channel_p, channel_n);
+  return adc_val;
+}
+
 float Ads1256::readchannel(int channel_p, int channel_n){
   
   unsigned long adc_val=0;

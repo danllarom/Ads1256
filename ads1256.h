@@ -11,7 +11,6 @@ class Ads1256{
       
       //constructores: 
       Ads1256(int cs, int rdy, int rst, int spispeed);
-      //Ads1256(int p, int v);
                               
       //metodos:
       void init(int datarate, int gain, int clockout, int sensorcurrent);
@@ -25,5 +24,22 @@ class Ads1256{
       
       //metodos:
       float readchannel(int channel_p, int channel_n);
+      
+};
+
+class MultiAds1256{
+    public:
+      //atributos publicos:
+      
+      //constructores: 
+      MultiAds1256(int cs, int rdy, int rst, int spispeed);
+                              
+      //metodos:
+      void init(int datarate, int gain, int clockout, int sensorcurrent);
+      
+    private:
+      //atributos privados:
+    
+      //metodos:
       
 };
