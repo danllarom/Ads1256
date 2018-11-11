@@ -15,14 +15,15 @@ class Ads1256{
                               
       //metodos:
       void init(int datarate, int gain, int clockout, int sensorcurrent);
-      unsigned long read8channel(unsigned long adc_val[8]);
-      unsigned long read1channel(int channel_ad);
+      void read8channel(float adc_val[8]);
+      float read1channel(int channel_ad);
+      float diffread1channel(int channel_p, int channel_n);
       
     private:
       //atributos privados:
       
       
       //metodos:
-      unsigned long readchannel(int channel_p, int channel_n);
+      float readchannel(int channel_p, int channel_n);
       
 };

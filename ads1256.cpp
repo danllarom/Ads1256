@@ -159,32 +159,29 @@ A1h = 10100001 = 1,000SPS
 
 }
 
-unsigned long Ads1256::read8channel(unsigned long adc_val[8]){
+void Ads1256::read8channel(float adc_val[8]){
   //Single ended Measurements
   int i = 0;
 
   for (i=0; i <= 7; i++){         // read all 8 Single Ended Channels AINx-AINCOM
     adc_val[i]=readchannel(i, 8);
-  }                                // Repeat for each channel ********** Step 4 ********** 
-
-  for (i=0; i <= 7; i++){   // Single ended Measurements 
-  if(adc_val[i] > 0x7fffff){   //if MSB == 1
-    adc_val[i] = adc_val[i]-16777216; //do 2's complement
-  }
-  }
+  }                               
 }
 
 
-unsigned long Ads1256::read1channel(int channel_ad){
+float Ads1256::read1channel(int channel_ad){
 
-  unsigned long adc_val=0;
+  float adc_val=0;
   adc_val=readchannel(channel_ad, 8);
   return adc_val;
 }
 
-unsigned long Ads1256::readchannel(int channel_p, int channel_n){
+float Ads1256::readchannel(int channel_p, int channel_n){
   
   unsigned long adc_val=0;
+  unsigned long MSB=0; //bit mas significativo
+  float adc_val1=0;
+  
   byte muxp[9] = {0x00,0x10,0x20,0x30,0x40,0x50,0x60,0x70,0x80};
   byte muxn[9] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 
@@ -265,10 +262,19 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
   digitalWrite(cs, HIGH);
   SPI.endTransaction();
   
-  if(adc_val > 0x7fffff){   //if MSB == 1
-    adc_val = adc_val-16777216; //do 2's complement
+  MSB=adc_val;
+  MSB >>= 23;
+  if(MSB == 1){   //if MSB == 1
+    //adc_val = adc_val - 0x800000; //do 2's complement
+    adc_val = adc_val-1;
+    adc_val = ~adc_val; //negate numbert
+    adc_val = adc_val ^ 0xFF000000;
+    adc_val1 = adc_val;
+    adc_val1 = (-1)*adc_val1;
   }
+  else {
+    adc_val1 = adc_val; 
+  }
+
   return adc_val;
 }
-  
-  

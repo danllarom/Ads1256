@@ -19,7 +19,8 @@ void loop() {
   
   
   adread.read8channel(val);
-  val1=adread.read1channel(4);
+  val1=adread.read1channel(0);
+  val1=adread.diffread1channel(0, 1);
 
   for (i=0; i <= 7; i++){  
     Serial.print(val[i]);   
