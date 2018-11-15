@@ -30,12 +30,19 @@ class Ads1256{
 class MultiAds1256{
     public:
       //atributos publicos:
+      int disp; // numero de convertidores en paralelo
+      int cs[8]; // puesto cs de cada convertidor
+      int rdy; // data ready, input
+      int rst; // may omit
+      int spispeed;   // Teensy 3.2 @120 mhz
       
       //constructores: 
-      MultiAds1256(int cs, int rdy, int rst, int spispeed);
+      MultiAds1256(int disp, int cs[8], int rdy, int rst, int spispeed);
                               
       //metodos:
       void init(int datarate, int gain, int clockout, int sensorcurrent);
+      void selectport(int channel_p,int channel_n);
+      void readchannels(float adc_val[8]);
       
     private:
       //atributos privados:

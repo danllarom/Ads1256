@@ -217,12 +217,12 @@ Data Byte(s): data to be written to the registers.
   delayMicroseconds(2);
 
   //SYNC command 1111 1100                               // ********** Step 2 **********
-  SPI.transfer(0xFC);
+  SPI.transfer(0xFC);     //inicio de la señal de inicio de conversion
   delayMicroseconds(2);
 
   //while (!digitalRead(rdy)) {} ;
   //WAKEUP 0000 0000
-  SPI.transfer(0x00);
+  SPI.transfer(0x00);     //fin de la señal de inicio de conversion
   delayMicroseconds(2);   // Allow settling time
 
 /*
