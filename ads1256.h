@@ -41,8 +41,7 @@ class MultiAds1256{
                               
       //metodos:
       void init(int datarate, int gain, int clockout, int sensorcurrent);
-      void selectport(int channel_p,int channel_n);
-      void readchannels(float adc_val[8]);
+      void readchannels(float adc_val[8], int channel_p,int channel_n);
       
     private:
       //atributos privados:
