@@ -159,7 +159,7 @@ A1h = 10100001 = 1,000SPS
 
 }
 
-void Ads1256::read8channel(float adc_val[8]){
+void Ads1256::simple8channel(float adc_val[8]){
   //Single ended Measurements
   int i = 0;
 
@@ -169,17 +169,21 @@ void Ads1256::read8channel(float adc_val[8]){
 }
 
 
-float Ads1256::read1channel(int channel_ad){
+float Ads1256::simple1channel(int channel_ad){
 
   float adc_val=0;
   adc_val=readchannel(channel_ad, 8);
   return adc_val;
 }
 
-float Ads1256::diffread1channel(int channel_p, int channel_n){
+float Ads1256::diff1channel(int channel_p, int channel_n){
   float adc_val=0;
   adc_val=readchannel(channel_p, channel_n);
   return adc_val;
+}
+
+void Ads1256::diff4channel(float adc_val[4], int channel_p[4],int channel_n[4]){
+  float adc_val1=0;
 }
 
 float Ads1256::readchannel(int channel_p, int channel_n){
@@ -472,7 +476,7 @@ A1h = 10100001 = 1,000SPS
 }
 
 
-void MultiAds1256::readchannels(float adc_val2[8], int channel_p,int channel_n){
+void MultiAds1256::multidiff1channel(float adc_val2[8], int channel_p,int channel_n){
   
   unsigned long adc_val=0;
   unsigned long MSB=0; //bit mas significativo

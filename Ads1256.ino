@@ -22,10 +22,10 @@ void loop() {
   float t;
   
   t=micros();
-  //adread.read8channel(val);
-  //val1=adread.read1channel(0);
-  //val1=adread.diffread1channel(0, 1);
-  multiadread.readchannels(val, 0, 1);
+  //adread.simple8channel(val);
+  //val1=adread.simple1channel(0);
+  //val1=adread.diff1channel(0, 1);
+  multiadread.multidiff1channel(val, 0, 1);
   //for (i=0; i <= 7; i++){  
   //  Serial.print(val[i]);   
   //  Serial.print("      ");

@@ -14,9 +14,11 @@ class Ads1256{
                               
       //metodos:
       void init(int datarate, int gain, int clockout, int sensorcurrent);
-      void read8channel(float adc_val[8]);
-      float read1channel(int channel_ad);
-      float diffread1channel(int channel_p, int channel_n);
+      
+      float simple1channel(int channel_ad);
+      void simple8channel(float adc_val[8]);
+      float diff1channel(int channel_p, int channel_n);
+      void diff4channel(float adc_val[4], int channel_p[4],int channel_n[4]);
       
     private:
       //atributos privados:
@@ -41,8 +43,13 @@ class MultiAds1256{
                               
       //metodos:
       void init(int datarate, int gain, int clockout, int sensorcurrent);
-      void readchannels(float adc_val[8], int channel_p,int channel_n);
       
+      void multisimple1channel(float adc_val[8], int channel_ad);
+      void multisimple8channel(float adc_val[8][8]);   
+      void multidiff1channel(float adc_val[8], int channel_p,int channel_n);
+      void multidiff4channel(float adc_val[8][4], int channel_p[4],int channel_n[4]);
+
+            
     private:
       //atributos privados:
     
