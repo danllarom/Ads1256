@@ -32,7 +32,4 @@ void loop() {
   //}
   Serial.println();
   Serial.println(micros()-t);
-  //Serial.println(val1);
-  //delay(250);
-  
 }
