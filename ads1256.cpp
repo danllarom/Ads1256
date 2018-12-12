@@ -159,16 +159,6 @@ A1h = 10100001 = 1,000SPS
 
 }
 
-void Ads1256::simple8channel(float adc_val[8]){
-  //Single ended Measurements
-  int i = 0;
-
-  for (i=0; i <= 7; i++){         // read all 8 Single Ended Channels AINx-AINCOM
-    adc_val[i]=readchannel(i, 8);
-  }                               
-}
-
-
 float Ads1256::simple1channel(int channel_ad){
 
   float adc_val=0;
@@ -176,14 +166,29 @@ float Ads1256::simple1channel(int channel_ad){
   return adc_val;
 }
 
+void Ads1256::simple8channel(float adc_val[8]){
+  //Single ended Measurements
+  int i = 0;
+
+  for (i=0; i <= 7; i++){         // read all 8 Single Ended Channels AINx-AINCOM
+    adc_val[i]=readchannel(i, 8);
+  }      
+                           
+}
+
 float Ads1256::diff1channel(int channel_p, int channel_n){
   float adc_val=0;
+  
   adc_val=readchannel(channel_p, channel_n);
+  
   return adc_val;
 }
 
 void Ads1256::diff4channel(float adc_val[4], int channel_p[4],int channel_n[4]){
-  float adc_val1=0;
+  int i=0;
+  for (i=0; i <= 3; i++){         // read all 8 Single Ended Channels AINx-AINCOM
+    adc_val[i]=readchannel(channel_p[i], channel_n[i]);
+  } 
 }
 
 float Ads1256::readchannel(int channel_p, int channel_n){
@@ -192,14 +197,14 @@ float Ads1256::readchannel(int channel_p, int channel_n){
   unsigned long MSB=0; //bit mas significativo
   float adc_val1=0;
   
-  byte muxp[9] = {0x00,0x10,0x20,0x30,0x40,0x50,0x60,0x70,0x80};
-  byte muxn[9] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
+  byte muxp[9] = {0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80};
+  byte muxn[9] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
 
   SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
   digitalWrite(cs, LOW);
   delayMicroseconds(2);
 
-  byte channel = muxp[channel_p]+muxn[channel_n];             // analog in channels # 
+  byte channel = muxp[channel_p] + muxn[channel_n];             // analog in channels # 
   
   while (digitalRead(rdy)) {} ;                          
 
@@ -280,13 +285,13 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
     adc_val = ~adc_val; //negate numbert
     adc_val = adc_val ^ 0xFF000000;
     adc_val1 = adc_val;
-    adc_val1 = (-1)*adc_val1;
+    adc_val1 = -adc_val1;
   }
   else {
     adc_val1 = adc_val; 
   }
 
-  return adc_val;
+  return adc_val1;
 }
 
 
@@ -474,9 +479,36 @@ A1h = 10100001 = 1,000SPS
   while (!Serial && (millis ()  <=  5000));  // WAIT UP TO 5000 MILLISECONDS FOR SERIAL OUTPUT CONSOLE
 
 }
+void MultiAds1256::multisimple1channel(float adc_val[8], int channel_ad){
 
+  multireadchannel(adc_val, channel_ad, 8);
+  
+}
 
-void MultiAds1256::multidiff1channel(float adc_val2[8], int channel_p,int channel_n){
+void MultiAds1256::multisimple8channel(float adc_val[8][8]){
+  
+  int i;
+  
+  for (i=0; i <= 7; i++){         // read all 8 Single Ended Channels AINx-AINCOM
+    multireadchannel(adc_val[i], i, 8);
+  }   
+}
+
+void MultiAds1256::multidiff1channel(float adc_val[8], int channel_p,int channel_n){
+    multireadchannel(adc_val, channel_p, channel_n);
+  
+}
+
+void MultiAds1256::multidiff4channel(float adc_val[8][4], int channel_p[4],int channel_n[4]){
+  
+  int i;
+  
+  for (i=0; i <= 7; i++){         // read all 8 Single Ended Channels AINx-AINCOM
+    multireadchannel(adc_val[i], channel_p[i], channel_n[i]);
+  }  
+}
+
+void MultiAds1256::multireadchannel(float adc_val2[8], int channel_p,int channel_n){
   
   unsigned long adc_val=0;
   unsigned long MSB=0; //bit mas significativo

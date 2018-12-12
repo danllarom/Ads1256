@@ -52,6 +52,8 @@ class MultiAds1256{
             
     private:
       //atributos privados:
+
+      void multireadchannel(float adc_val2[8], int channel_p,int channel_n);
     
       //metodos:
       
