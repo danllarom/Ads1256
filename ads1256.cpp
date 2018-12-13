@@ -223,7 +223,7 @@ Data Byte(s): data to be written to the registers.
   SPI.transfer(0x50 | 0x01); // 1st Command Byte: 0101 0001  0001 = MUX register address 01h
   SPI.transfer(0x00);     // 2nd Command Byte: 0000 0000  1-1=0 write one byte only
   SPI.transfer(channel);     // Data Byte(s): xxxx 1000  write the databyte to the register(s)
-  delayMicroseconds(2);
+  delayMicroseconds(20);
 
   //SYNC command 1111 1100                               // ********** Step 2 **********
   SPI.transfer(0xFC);     //inicio de la señal de inicio de conversion
@@ -264,6 +264,9 @@ Bits 3-0 NSEL3, NSEL2, NSEL1, NSEL0: Negative Input Channel (AINN)Select
 NOTE: When using an ADS1255 make sure to only select the available inputs.
  */
 
+  while (digitalRead(rdy)) {}
+
+
   SPI.transfer(0x01); // Read Data 0000  0001 (01h)       // ********** Step 3 **********
   delayMicroseconds(5);
   
@@ -303,15 +306,15 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
 
 
 
-MultiAds1256::MultiAds1256(int dis, int c[8], int rd, int rs, int sp){
+MultiAds1256::MultiAds1256(int dis, int c[8], int rd[8], int rs, int sp){
   
   int i;
   disp=dis;
   for(i=0; i < disp ; i++){
     cs[i]=c[i]; // chip select //ESTO NO SE SI FUNCIONARA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+    rdy[i]=rd[i]; // data ready, input// chip select //ESTO NO SE SI FUNCIONARA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
   }
-
-  rdy=rd; // data ready, input
+  
   rst=rs; // may omit
   spispeed=sp;
 }
@@ -332,11 +335,10 @@ void MultiAds1256::init(int datarate, int gain, int clockout, int sensorcurrent)
   int i;
 
   for(i=0; i < disp ; i++){
+    pinMode(rdy[i], INPUT);
     pinMode(cs[i], OUTPUT);
     digitalWrite(cs[i], LOW); // tied low is also OK.
   }
-  
-  pinMode(rdy, INPUT);
   pinMode(rst, OUTPUT);
   digitalWrite(rst, LOW);
   delay(1); // LOW at least 4 clock cycles of onboard clock. 100 microseconds is enough
@@ -346,8 +348,11 @@ void MultiAds1256::init(int datarate, int gain, int clockout, int sensorcurrent)
   SPI.begin(); //start the spi-bus
   delay(500);
   //init
+
+  for(i=0; i < disp ; i++){
+    while (digitalRead(rdy[i])) {}
+  }
   
-  while (digitalRead(rdy)) {}  // wait for ready_line to go low
   SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
   
   for(i=0; i < disp ; i++){
@@ -487,10 +492,14 @@ void MultiAds1256::multisimple1channel(float adc_val[8], int channel_ad){
 
 void MultiAds1256::multisimple8channel(float adc_val[8][8]){
   
-  int i;
+  int i,j;
+  float adc_val1[8];
   
   for (i=0; i <= 7; i++){         // read all 8 Single Ended Channels AINx-AINCOM
-    multireadchannel(adc_val[i], i, 8);
+    multireadchannel(adc_val1, i, 8); 
+    for (j=0; j <= 7; j++){         
+      adc_val[j][i]= adc_val1[j];
+    }
   }   
 }
 
@@ -501,10 +510,13 @@ void MultiAds1256::multidiff1channel(float adc_val[8], int channel_p,int channel
 
 void MultiAds1256::multidiff4channel(float adc_val[8][4], int channel_p[4],int channel_n[4]){
   
-  int i;
-  
-  for (i=0; i <= 7; i++){         // read all 8 Single Ended Channels AINx-AINCOM
-    multireadchannel(adc_val[i], channel_p[i], channel_n[i]);
+  int i,j;
+  float adc_val1[8];
+  for (i=0; i <= 3; i++){         // read all 8 Single Ended Channels AINx-AINCOM
+    multireadchannel(adc_val1, channel_p[i], channel_n[i]);
+    for (j=0; j <= 3; j++){         
+      adc_val[j][i]= adc_val1[j];
+    }
   }  
 }
 
@@ -516,17 +528,18 @@ void MultiAds1256::multireadchannel(float adc_val2[8], int channel_p,int channel
   int i;
   byte muxp[9] = {0x00,0x10,0x20,0x30,0x40,0x50,0x60,0x70,0x80};
   byte muxn[9] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
+  byte channel = muxp[channel_p]+muxn[channel_n];  
 
   SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
   
+
   for(i=0; i < disp ; i++){
+    while (digitalRead(rdy[i])) {}
     digitalWrite(cs[i], LOW);
   }
-  
   delayMicroseconds(2);
-  byte channel = muxp[channel_p]+muxn[channel_n];             // analog in channels # 
+             // analog in channels # 
   
-  while (digitalRead(rdy)) {} ;                          
 
 /*
  WREG: Write to Register
@@ -536,9 +549,6 @@ will be written is one plus the value of the second byte in the command.
 2nd Command Byte: 0000 nnnn where nnnn is the number of bytes to be written – 1.
 Data Byte(s): data to be written to the registers. 
  */
-  //byte data = (channel << 4) | (1 << 3); //AIN-channel and AINCOM   // ********** Step 1 **********
-  //byte data = (channel << 4) | (1 << 1)| (1); //AIN-channel and AINCOM   // ********** Step 1 **********
-  //Serial.println(channel,HEX);
   
   SPI.transfer(0x50 | 0x01); // 1st Command Byte: 0101 0001  0001 = MUX register address 01h
   SPI.transfer(0x00);     // 2nd Command Byte: 0000 0000  1-1=0 write one byte only
@@ -548,9 +558,7 @@ Data Byte(s): data to be written to the registers.
   //SYNC command 1111 1100                               // ********** Step 2 **********
   SPI.transfer(0xFC);     //inicio de la señal de inicio de conversion
   delayMicroseconds(2);
-
-  //while (!digitalRead(rdy)) {} ;
-  //WAKEUP 0000 0000
+  
   SPI.transfer(0x00);     //fin de la señal de inicio de conversion
   delayMicroseconds(2);   // Allow settling time
 
@@ -589,6 +597,7 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
   }
   
   for(i=0; i < disp ; i++){
+    while (digitalRead(rdy[i])) {}
     digitalWrite(cs[i], LOW);
     SPI.transfer(0x01); // Read Data 0000  0001 (01h)       // ********** Step 3 **********
     delayMicroseconds(5);
@@ -601,7 +610,7 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
     delayMicroseconds(2);
     
     digitalWrite(cs[i], HIGH);
-    SPI.endTransaction();
+    
   
     MSB=adc_val;
     MSB >>= 23;
@@ -616,9 +625,9 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
     else {
       adc_val1 = adc_val; 
     }
-    adc_val2[i]=adc_val;  
+    adc_val2[i]=adc_val1; 
   }
-  
+  SPI.endTransaction();
 }
 
 
