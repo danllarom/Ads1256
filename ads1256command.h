@@ -1,8 +1,28 @@
 #include <arduino.h>
 #include <SPI.h>
 
+void wakeup();
+void rdata();
+void rdatac();
+void sdatac();
+void rreg(byte reg);
+void wreg(byte i);
+void selfcal();
+void selfocal();
+void selfgcal();
+void sysocal();
+void sysgcal();
+void sync();
+void standby();
+void ads1256reset();
+unsigned long readdata();
+void readreg(byte reg, byte data[8]);
+void writereg(byte reg, byte data[8]);
+void writeregchannel(int channel_p,int channel_n);
+
 void wakeup(){ 
-  SPI.transfer(0x00); 
+  SPI.transfer(0x00);
+  delayMicroseconds(2); 
 }
 
 void rdata(){ 
@@ -22,9 +42,8 @@ void rreg(byte reg){
   SPI.transfer(i); 
 }
 
-void wreg(byte i){ 
-  byte reg=0x50+i;
-  SPI.transfer(reg);
+void wreg(byte reg){ 
+  SPI.transfer(0x50 | reg);
 }
 
 void selfcal(){
@@ -39,7 +58,7 @@ void selfgcal(){
   SPI.transfer(0xF2);
 }
 
-void sysgcal(){ 
+void sysocal(){ 
   SPI.transfer(0xF3);
 }
 
@@ -49,6 +68,7 @@ void sysgcal(){
 
 void sync(){ 
   SPI.transfer(0xFC);
+  delayMicroseconds(2);
 }
 
 void standby(){ 
@@ -59,8 +79,10 @@ void ads1256reset(){
   SPI.transfer(0xFE);
 }
 
-void readdata(unsigned long adc_val){
-  rdata()
+unsigned long readdata(){
+  unsigned long adc_val;
+  
+  rdata();
   delayMicroseconds(5);
   
   adc_val = SPI.transfer(0);
@@ -68,27 +90,36 @@ void readdata(unsigned long adc_val){
   adc_val |= SPI.transfer(0);
   adc_val <<= 8;
   adc_val |= SPI.transfer(0);
-
+  
   delayMicroseconds(2); 
+  return adc_val;
 }
 
-void readreg(byte reg,int nreg, byte data[nreg]){ 
+void readreg(byte reg, byte data){ 
   int i;
   rreg(reg);
-  for(i=0; i < nreg; i++){
-    data[i] = SPI.transfer(0);
-  }
+  SPI.transfer(0x00);
+  data = SPI.transfer(0);
   delayMicroseconds(2);  
 }
 
-void writereg(byte reg,int nreg, byte data[nreg]){ 
+void writereg(byte reg, byte data){ 
   int i;
-  byte number=nreg-1
   wreg(reg);
-  SPI.transfer(number);
-  for(i=0; i < nreg; i++){
-     SPI.transfer(data[i]);
-  }
+  SPI.transfer(0x00);
+  SPI.transfer(data);
+  
   delayMicroseconds(2);  
+}
+
+void writeregchannel(int channel_p,int channel_n){
+  
+  byte muxp[9] = {0x00,0x10,0x20,0x30,0x40,0x50,0x60,0x70,0x80};
+  byte muxn[9] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
+  byte channel = muxp[channel_p]+muxn[channel_n];
+  Serial.println(channel);
+  writereg(0x01, channel);
+  delayMicroseconds(2);
+  
 }
 

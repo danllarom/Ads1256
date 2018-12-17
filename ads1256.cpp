@@ -1,5 +1,6 @@
 #include "ads1256.h"
 #include <SPI.h>
+#include "ads1256command.h"
 
 Ads1256::Ads1256(int c, int rd, int rs, int sp){
   cs=c; // chip select
@@ -525,90 +526,30 @@ void MultiAds1256::multireadchannel(float adc_val2[8], int channel_p,int channel
   unsigned long adc_val=0;
   unsigned long MSB=0; //bit mas significativo
   float adc_val1=0;
-  int i;
-  byte muxp[9] = {0x00,0x10,0x20,0x30,0x40,0x50,0x60,0x70,0x80};
-  byte muxn[9] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
-  byte channel = muxp[channel_p]+muxn[channel_n];  
+  int i;  
 
-  SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
-  
+  //SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
 
   for(i=0; i < disp ; i++){
     while (digitalRead(rdy[i])) {}
     digitalWrite(cs[i], LOW);
   }
   delayMicroseconds(2);
-             // analog in channels # 
-  
 
-/*
- WREG: Write to Register
-Description: Write to the registers starting with the register specified as part of the command. The number of registers that
-will be written is one plus the value of the second byte in the command.
-1st Command Byte: 0101 rrrr where rrrr is the address to the first register to be written.
-2nd Command Byte: 0000 nnnn where nnnn is the number of bytes to be written – 1.
-Data Byte(s): data to be written to the registers. 
- */
-  
-  SPI.transfer(0x50 | 0x01); // 1st Command Byte: 0101 0001  0001 = MUX register address 01h
-  SPI.transfer(0x00);     // 2nd Command Byte: 0000 0000  1-1=0 write one byte only
-  SPI.transfer(channel);     // Data Byte(s): xxxx 1000  write the databyte to the register(s)
-  delayMicroseconds(2);
+  writeregchannel(channel_p,channel_n);
+  sync();
+  wakeup();
 
-  //SYNC command 1111 1100                               // ********** Step 2 **********
-  SPI.transfer(0xFC);     //inicio de la señal de inicio de conversion
-  delayMicroseconds(2);
-  
-  SPI.transfer(0x00);     //fin de la señal de inicio de conversion
-  delayMicroseconds(2);   // Allow settling time
-
-/*
-MUX : Input Multiplexer Control Register (Address 01h)
-Reset Value = 01h
-BIT 7    BIT 6    BIT 5    BIT 4    BIT 3    BIT 2    BIT 1    BIT 0
-PSEL3    PSEL2    PSEL1    PSEL0    NSEL3    NSEL2    NSEL1    NSEL0
-Bits 7-4 PSEL3, PSEL2, PSEL1, PSEL0: Positive Input Channel (AINP) Select
-0000 = AIN0 (default)
-0001 = AIN1
-0010 = AIN2 (ADS1256 only)
-0011 = AIN3 (ADS1256 only)
-0100 = AIN4 (ADS1256 only)
-0101 = AIN5 (ADS1256 only)
-0110 = AIN6 (ADS1256 only)
-0111 = AIN7 (ADS1256 only)
-1xxx = AINCOM (when PSEL3 = 1, PSEL2, PSEL1, PSEL0 are “don’t care”)
-NOTE: When using an ADS1255 make sure to only select the available inputs.
-
-Bits 3-0 NSEL3, NSEL2, NSEL1, NSEL0: Negative Input Channel (AINN)Select
-0000 = AIN0
-0001 = AIN1 (default)
-0010 = AIN2 (ADS1256 only)
-0011 = AIN3 (ADS1256 only)
-0100 = AIN4 (ADS1256 only)
-0101 = AIN5 (ADS1256 only)
-0110 = AIN6 (ADS1256 only)
-0111 = AIN7 (ADS1256 only)
-1xxx = AINCOM (when NSEL3 = 1, NSEL2, NSEL1, NSEL0 are “don’t care”)
-NOTE: When using an ADS1255 make sure to only select the available inputs.
- */
 
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], HIGH);
   }
   
   for(i=0; i < disp ; i++){
-    while (digitalRead(rdy[i])) {}
-    digitalWrite(cs[i], LOW);
-    SPI.transfer(0x01); // Read Data 0000  0001 (01h)       // ********** Step 3 **********
-    delayMicroseconds(5);
-  
-    adc_val = SPI.transfer(0);
-    adc_val <<= 8; //shift to left
-    adc_val |= SPI.transfer(0);
-    adc_val <<= 8;
-    adc_val |= SPI.transfer(0);
-    delayMicroseconds(2);
     
+    //while (digitalRead(rdy[i])) {}    //ESTO ES LO QUE HAY  QUE ELIMINAR PARA EL MODO RAPIDO
+    digitalWrite(cs[i], LOW);
+    adc_val=readdata();
     digitalWrite(cs[i], HIGH);
     
   
@@ -627,7 +568,7 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
     }
     adc_val2[i]=adc_val1; 
   }
-  SPI.endTransaction();
+  //SPI.endTransaction();
 }
 
 
