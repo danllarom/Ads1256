@@ -521,11 +521,9 @@ void MultiAds1256::multidiff4channel(float adc_val[8][4], int channel_p[4],int c
   }  
 }
 
-void MultiAds1256::multireadchannel(float adc_val2[8], int channel_p,int channel_n){
+void MultiAds1256::multireadchannel(float adc_val[8], int channel_p,int channel_n){
   
-  unsigned long adc_val=0;
-  unsigned long MSB=0; //bit mas significativo
-  float adc_val1=0;
+  unsigned long adc_val1=0; 
   int i;  
 
   //SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
@@ -540,7 +538,6 @@ void MultiAds1256::multireadchannel(float adc_val2[8], int channel_p,int channel
   sync();
   wakeup();
 
-
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], HIGH);
   }
@@ -549,24 +546,10 @@ void MultiAds1256::multireadchannel(float adc_val2[8], int channel_p,int channel
     
     //while (digitalRead(rdy[i])) {}    //ESTO ES LO QUE HAY  QUE ELIMINAR PARA EL MODO RAPIDO
     digitalWrite(cs[i], LOW);
-    adc_val=readdata();
+    adc_val1=readdata();
+    adc_val[i]=ca2(adc_val1);   
     digitalWrite(cs[i], HIGH);
-    
-  
-    MSB=adc_val;
-    MSB >>= 23;
-    if(MSB == 1){   //if MSB == 1
-      //adc_val = adc_val - 0x800000; //do 2's complement
-      adc_val = adc_val-1;
-      adc_val = ~adc_val; //negate numbert
-      adc_val = adc_val ^ 0xFF000000;
-      adc_val1 = adc_val;
-      adc_val1 = (-1)*adc_val1;
-    }
-    else {
-      adc_val1 = adc_val; 
-    }
-    adc_val2[i]=adc_val1; 
+
   }
   //SPI.endTransaction();
 }

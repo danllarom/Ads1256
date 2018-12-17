@@ -19,6 +19,7 @@ unsigned long readdata();
 void readreg(byte reg, byte data[8]);
 void writereg(byte reg, byte data[8]);
 void writeregchannel(int channel_p,int channel_n);
+float ca2(unsigned long val);
 
 void wakeup(){ 
   SPI.transfer(0x00);
@@ -121,5 +122,24 @@ void writeregchannel(int channel_p,int channel_n){
   writereg(0x01, channel);
   delayMicroseconds(2);
   
+}
+
+float ca2(unsigned long val){
+  unsigned long MSB=0;
+  float val1=0;
+
+  MSB=val;
+  MSB >>= 23;
+  if(MSB == 1){   //if MSB == 1
+    val = val-1;
+    val = ~val; //negate numbert
+    val = val ^ 0xFF000000;
+    val1 = val;
+    val1 = (-1)*val1;
+  }
+  else {
+    val1 = val; 
+  }
+  return val1;
 }
 
