@@ -36,13 +36,15 @@ class MultiAds1256{
       int cs[8]; // puertos cs de cada convertidor
       int rdy[8]; // data ready, input
       int rst; // may omit
-      int spispeed;   // Teensy 3.2 @120 mhz
+      unsigned long spispeed;   // Teensy 3.2 @120 mhz
       
       //constructores: 
-      MultiAds1256(int disp, int cs[8], int rdy[8], int rst, int spispeed);
+      MultiAds1256(int disp, int cs[8], int rdy[8], int rst, unsigned long spispeed);
                               
       //metodos:
-      void init(int datarate, int gain, int clockout, int sensorcurrent);
+      void ads1256config(int datarate, int gain, int clockout, int sensorcurrent);
+      void init();
+      void finish();
       
       void multisimple1channel(float adc_val[8], int channel_ad);
       void multisimple8channel(float adc_val[8][8]);   

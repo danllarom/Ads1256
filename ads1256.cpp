@@ -307,7 +307,7 @@ NOTE: When using an ADS1255 make sure to only select the available inputs.
 
 
 
-MultiAds1256::MultiAds1256(int dis, int c[8], int rd[8], int rs, int sp){
+MultiAds1256::MultiAds1256(int dis, int c[8], int rd[8], int rs, unsigned long sp){
   
   int i;
   disp=dis;
@@ -322,7 +322,7 @@ MultiAds1256::MultiAds1256(int dis, int c[8], int rd[8], int rs, int sp){
 
 
 
-void MultiAds1256::init(int datarate, int gain, int clockout, int sensorcurrent){
+void MultiAds1256::ads1256config(int datarate, int gain, int clockout, int sensorcurrent){
   
   byte dr[16] = {0xf0,0xe0,0xd0,0xc0,0xb0,0xa1,0x92,0x82,0x72,0x63,0x53,0x43,0x33,0x23,0x13,0x03};
   //byte dataratesetting=dr[datarate];
@@ -397,12 +397,11 @@ This bit duplicates the state of the DRDY pin.
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], HIGH);
   }
-  
   SPI.endTransaction();
-  
   while (!Serial && (millis ()  <=  5000));  // WAIT UP TO 5000 MILLISECONDS FOR SERIAL OUTPUT CONSOLE
-
+  //SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
 }
+
 void MultiAds1256::multisimple1channel(float adc_val[8], int channel_ad){
 
   multireadchannel(adc_val, channel_ad, 8);
@@ -443,32 +442,50 @@ void MultiAds1256::multireadchannel(float adc_val[8], int channel_p,int channel_
   
   unsigned long adc_val1=0; 
   int i;  
-
-  //SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
+ 
+  
 
   for(i=0; i < disp ; i++){
-    while (digitalRead(rdy[i])) {}
     digitalWrite(cs[i], LOW);
   }
+  
+  while (digitalRead(rdy[0])) {}
   delayMicroseconds(2);
-
   writeregchannel(channel_p,channel_n);
-  sync();
-  wakeup();
-
+  standby();
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], HIGH);
   }
   
   for(i=0; i < disp ; i++){
-    //while (digitalRead(rdy[i])) {}    //ESTO ES LO QUE HAY  QUE ELIMINAR PARA EL MODO RAPIDO
+      
     digitalWrite(cs[i], LOW);
     adc_val1=readdata();
     adc_val[i]=ca2(adc_val1);   
     digitalWrite(cs[i], HIGH);
-
   }
-  //SPI.endTransaction();
+
+  for(i=0; i < disp ; i++){
+    digitalWrite(cs[i], LOW);
+  }
+  while (digitalRead(rdy[0])) {}
+  wakeup();
+  sync();
+  wakeup();
+
+ 
+  for(i=0; i < disp ; i++){
+    digitalWrite(cs[i], HIGH);
+  }
+  
+}
+
+void MultiAds1256::init(){
+  SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1));
+}
+
+void MultiAds1256::finish(){
+  SPI.endTransaction();
 }
 
 
