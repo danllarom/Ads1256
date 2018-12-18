@@ -11,7 +11,7 @@ void setup() {
    
    Serial.begin(115200);
    //adread.init(0, 0, 0, 0);
-   multiadread.ads1256config(1, 0, 0, 0);
+   multiadread.ads1256config(4, 0, 0, 0);
 
    multiadread.init();
 }

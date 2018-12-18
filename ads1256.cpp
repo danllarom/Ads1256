@@ -445,21 +445,21 @@ void MultiAds1256::multireadchannel(float adc_val[8], int channel_p,int channel_
  
   
 
-  for(i=0; i < disp ; i++){
-    digitalWrite(cs[i], LOW);
-  }
-  
+  //for(i=0; i < disp ; i++){
+  //  digitalWrite(cs[i], LOW);
+  //}
+    
   while (digitalRead(rdy[0])) {}
-  delayMicroseconds(2);
+  delayMicroseconds(2); 
   writeregchannel(channel_p,channel_n);
+  sync();
+  wakeup();
   standby();
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], HIGH);
   }
-  
-  for(i=0; i < disp ; i++){
-      
-    digitalWrite(cs[i], LOW);
+  for(i=0; i < disp ; i++){ 
+    digitalWrite(cs[i], LOW); 
     adc_val1=readdata();
     adc_val[i]=ca2(adc_val1);   
     digitalWrite(cs[i], HIGH);
@@ -468,24 +468,27 @@ void MultiAds1256::multireadchannel(float adc_val[8], int channel_p,int channel_
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], LOW);
   }
-  while (digitalRead(rdy[0])) {}
   wakeup();
-  sync();
-  wakeup();
-
- 
-  for(i=0; i < disp ; i++){
-    digitalWrite(cs[i], HIGH);
-  }
+ // for(i=0; i < disp ; i++){
+ //   digitalWrite(cs[i], HIGH);
+ // }
   
 }
 
 void MultiAds1256::init(){
+  int i;
   SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1));
+  for(i=0; i < disp ; i++){
+    digitalWrite(cs[i], LOW);
+  }
 }
 
 void MultiAds1256::finish(){
+  int i;
   SPI.endTransaction();
+  for(i=0; i < disp ; i++){
+    digitalWrite(cs[i], HIGH);
+  }
 }
 
 
