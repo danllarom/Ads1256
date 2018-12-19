@@ -443,21 +443,16 @@ void MultiAds1256::multireadchannel(float adc_val[8], int channel_p,int channel_
   unsigned long adc_val1=0; 
   int i;  
  
-  
-
-  //for(i=0; i < disp ; i++){
-  //  digitalWrite(cs[i], LOW);
-  //}
-    
   while (digitalRead(rdy[0])) {}
   delayMicroseconds(2); 
   writeregchannel(channel_p,channel_n);
   sync();
   wakeup();
-  standby();
+  while (digitalRead(rdy[0])!=0) {}
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], HIGH);
   }
+  
   for(i=0; i < disp ; i++){ 
     digitalWrite(cs[i], LOW); 
     adc_val1=readdata();
@@ -468,11 +463,6 @@ void MultiAds1256::multireadchannel(float adc_val[8], int channel_p,int channel_
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], LOW);
   }
-  wakeup();
- // for(i=0; i < disp ; i++){
- //   digitalWrite(cs[i], HIGH);
- // }
-  
 }
 
 void MultiAds1256::init(){
