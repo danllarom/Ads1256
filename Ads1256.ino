@@ -1,9 +1,9 @@
 #include "ads1256.h"
 #include <SPI.h>
 
+int cs[2]={10,7};
+int rdy=9;
 
-int cs[8]={10,10,10,7,10,7,10,7};
-int rdy[8]={9,9,9,8,9,8,9,8};
 Ads1256 adread(2, cs, rdy, 6, 7680000);
 
 void setup() {
@@ -16,49 +16,26 @@ void setup() {
 
 void loop() {
   
-  int i = 0;
-  float val8[8] = {0,0,0,0,0,0,0,0};
-  float val88[8] = {0,0,0,0,0,0,0,0};
-  float val4[4] = {0,0,0,0};
-  float val1=0;
-  float val2[8];
-  float val2x8[8][4];
-  int cp4[4]={0,2,4,6};
-  int cn4[4]={1,3,5,7};
+  int i;
+  float val[2] = {0,0};
   int cp=0;
   int cn=1;
-  float t1, t2, t;
+  float t;
   
-  t1=micros();
+  t=micros();
   
-  adread.readchannel(val8, cp, cn);
-  delayMicroseconds(100);
-  adread.readchannel(val8, cp, cn);
-  delayMicroseconds(100);
-  adread.readchannel(val8, cp, cn);
-  delayMicroseconds(100);
-  adread.readchannel(val8, cp, cn);
-  delayMicroseconds(100);
+  adread.readchannel(val, cp, cn);
   
-  t1=micros()-t1;
-  t2=micros();
-  adread.readchannel(val88, cp, cn);
-  delayMicroseconds(100);
-  t2=micros()-t2;
-  Serial.println(t1);
-  for (i=0; i <= 7; i++){  
-    Serial.print(val8[i]);   
+  t=micros()-t;
+
+  for (i=0; i < 2; i++){  
+    Serial.print(val[i]);   
     Serial.print("      ");
   }
-  
   Serial.println();
-  Serial.println(t2);
-  for (i=0; i <= 7; i++){  
-    Serial.print(val88[i]);   
-    Serial.print("      ");
-  }
+  Serial.println(t);
   Serial.println();
 
-  delay(2000);
+  delay(1000);
   
 }

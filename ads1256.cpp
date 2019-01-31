@@ -3,20 +3,19 @@
 #include "ads1256command.h"
   
 
-Ads1256::Ads1256(int dis, int c[8], int rd[8], int rs, unsigned long sp){
+Ads1256::Ads1256(int dis, int c[8], int rd, int rs, unsigned long sp){
   
   int i;
-  disp=dis;
-  for(i=0; i < disp ; i++){
-    cs[i]=c[i]; // chip select //ESTO NO SE SI FUNCIONARA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-    rdy[i]=rd[i]; // data ready, input// chip select //ESTO NO SE SI FUNCIONARA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-  }
   
+  disp=dis;
+  rdy=rd;
   rst=rs; // may omit
   spispeed=sp;
+    
+  for(i=0; i < disp ; i++){
+    cs[i]=c[i]; // chip select //ESTO NO SE SI FUNCIONARA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+  }
 }
-
-
 
 void Ads1256::ads1256config(int datarate, int gain, int clockout, int sensorcurrent){
   
@@ -25,7 +24,7 @@ void Ads1256::ads1256config(int datarate, int gain, int clockout, int sensorcurr
   int i;
 
   for(i=0; i < disp ; i++){
-    pinMode(rdy[i], INPUT);
+    pinMode(rdy, INPUT);
     pinMode(cs[i], OUTPUT);
     digitalWrite(cs[i], LOW); // tied low is also OK.
   }
@@ -40,7 +39,7 @@ void Ads1256::ads1256config(int datarate, int gain, int clockout, int sensorcurr
   //init
 
   for(i=0; i < disp ; i++){
-    while (digitalRead(rdy[i])) {}
+    while (digitalRead(rdy)) {}
   }
   
   SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
@@ -98,17 +97,25 @@ This bit duplicates the state of the DRDY pin.
   //SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
 }
 
+void Ads1256::init(){
+  int i;
+  SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1));
+  for(i=0; i < disp ; i++){
+    digitalWrite(cs[i], LOW);
+  }
+}
+
 void Ads1256::readchannel(float adc_val[8], int channel_p,int channel_n){
   
   unsigned long adc_val1=0; 
   int i;  
  
-  while (digitalRead(rdy[0])) {}
+  while (digitalRead(rdy)) {}
   delayMicroseconds(2); 
   writeregchannel(channel_p,channel_n);
   sync();
   wakeup();
-  while (digitalRead(rdy[0])!=0) {}
+  while (digitalRead(rdy)!=0) {}
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], HIGH);
   }
@@ -125,14 +132,6 @@ void Ads1256::readchannel(float adc_val[8], int channel_p,int channel_n){
   }
 }
 
-void Ads1256::init(){
-  int i;
-  SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1));
-  for(i=0; i < disp ; i++){
-    digitalWrite(cs[i], LOW);
-  }
-}
-
 void Ads1256::finish(){
   int i;
   SPI.endTransaction();
@@ -140,5 +139,8 @@ void Ads1256::finish(){
     digitalWrite(cs[i], HIGH);
   }
 }
+
+
+
 
 
