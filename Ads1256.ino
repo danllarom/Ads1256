@@ -2,18 +2,16 @@
 #include <SPI.h>
 
 
-int cs[8]={10,7,10,7,10,7,10,7};
-int rdy[8]={9,8,9,8,9,8,9,8};
-Ads1256 adread(7, 8, 6, 5000000);
-MultiAds1256 multiadread(6, cs, rdy, 6, 7680000);
+int cs[8]={10,10,10,7,10,7,10,7};
+int rdy[8]={9,9,9,8,9,8,9,8};
+Ads1256 adread(2, cs, rdy, 6, 7680000);
 
 void setup() {
    
    Serial.begin(115200);
-   //adread.init(0, 0, 0, 0);
-   multiadread.ads1256config(4, 0, 0, 0);
+   adread.ads1256config(3, 0, 0, 0);
 
-   multiadread.init();
+   adread.init();
 }
 
 void loop() {
@@ -33,26 +31,19 @@ void loop() {
   
   t1=micros();
   
-  //val1=adread.simple1channel(0);
-  //adread.simple8channel(val8);
-  //val1=adread.diff1channel(cp, cn);
-  //adread.diff4channel(val4, cp4, cn4);
-
-  //multiadread.multisimple1channel(val2, cp);
-  //multiadread.multisimple8channel(val2x8);
-  multiadread.multidiff1channel(val8, cp, cn);
-  delayMicroseconds(40);
-  multiadread.multidiff1channel(val8, cp, cn);
-  delayMicroseconds(40);
-  multiadread.multidiff1channel(val8, cp, cn);
-  delayMicroseconds(40);
-  multiadread.multidiff1channel(val8, cp, cn);
-  delayMicroseconds(40);
-  //multiadread.multidiff4channel(val2x8, cp4, cn4);
+  adread.readchannel(val8, cp, cn);
+  delayMicroseconds(100);
+  adread.readchannel(val8, cp, cn);
+  delayMicroseconds(100);
+  adread.readchannel(val8, cp, cn);
+  delayMicroseconds(100);
+  adread.readchannel(val8, cp, cn);
+  delayMicroseconds(100);
+  
   t1=micros()-t1;
   t2=micros();
-  multiadread.multidiff1channel(val88, cp, cn);
-  delayMicroseconds(40);
+  adread.readchannel(val88, cp, cn);
+  delayMicroseconds(100);
   t2=micros()-t2;
   Serial.println(t1);
   for (i=0; i <= 7; i++){  
