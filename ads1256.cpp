@@ -1,4 +1,4 @@
-#include "ads1256.h"
+#include "ads1256lib.h"
 #include <SPI.h>
 #include "ads1256command.h"
   
@@ -139,8 +139,3 @@ void Ads1256::finish(){
     digitalWrite(cs[i], HIGH);
   }
 }
-
-
-
-
-

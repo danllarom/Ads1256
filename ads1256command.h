@@ -1,4 +1,4 @@
-#include <arduino.h>
+#include <Arduino.h>
 #include <SPI.h>
 
 void wakeup();
@@ -203,4 +203,3 @@ void dataratesetting(int datarate){
   byte drate_reg = 0x03; //DRATE: A/D Data Rate (Address 03h)
   writereg(drate_reg, drate_data); 
 }
-

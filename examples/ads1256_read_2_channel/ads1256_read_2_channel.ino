@@ -1,5 +1,5 @@
-#include "ads1256.h"
 #include <SPI.h>
+#include <ads1256.h>
 
 int cs[2]={10,7};
 int rdy=9;
@@ -37,5 +37,4 @@ void loop() {
   Serial.println();
 
   delay(1000);
-  
 }
