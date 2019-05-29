@@ -3,17 +3,18 @@
 #include "ads1256command.h"
   
 
-Ads1256::Ads1256(int dis, int c[8], int rd, int rs, unsigned long sp){
+Ads1256::Ads1256(int dis, int c[8], int rd[8], int rs, unsigned long sp){
   
   int i;
   
   disp=dis;
-  rdy=rd;
+
   rst=rs; // may omit
   spispeed=sp;
     
   for(i=0; i < disp ; i++){
     cs[i]=c[i]; // chip select //ESTO NO SE SI FUNCIONARA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+    rdy[i]=rd[i];
   }
 }
 
@@ -21,10 +22,10 @@ void Ads1256::ads1256config(int datarate, int gain, int clockout, int sensorcurr
   
   byte dr[16] = {0xf0,0xe0,0xd0,0xc0,0xb0,0xa1,0x92,0x82,0x72,0x63,0x53,0x43,0x33,0x23,0x13,0x03};
   //byte dataratesetting=dr[datarate];
-  int i;
+  int i,a;
 
   for(i=0; i < disp ; i++){
-    pinMode(rdy, INPUT);
+    pinMode(rdy[i], INPUT);
     pinMode(cs[i], OUTPUT);
     digitalWrite(cs[i], LOW); // tied low is also OK.
   }
@@ -38,9 +39,23 @@ void Ads1256::ads1256config(int datarate, int gain, int clockout, int sensorcurr
   delay(500);
   //init
 
-  for(i=0; i < disp ; i++){
-    while (digitalRead(rdy)) {}
+  //for(i=0; i < disp ; i++){
+  //  while (digitalRead(rdy)) {}
+  //}
+
+
+
+ 
+  while (a) {
+    int b[disp];
+    a=1;
+    for(i=0; i < disp ; i++){
+      b[i]=digitalRead(rdy[i]);
+      a=a*b[i];
+    }
   }
+  a=0;
+
   
   SPI.beginTransaction(SPISettings(spispeed, MSBFIRST, SPI_MODE1)); // start SPI
   
@@ -76,7 +91,7 @@ This bit duplicates the state of the DRDY pin.
 **************************************************************************************************************/
   
   byte status_reg = 0x00 ;  // address (datasheet p. 30)
-  byte status_data = 0x01; // 01h = 0000 0 0 0 1 => status: Most Significant Bit First, Auto-Calibration Disabled, Analog Input Buffer Disabled
+  byte status_data = 0x03; // 01h = 0000 0 0 0 1 => status: Most Significant Bit First, Auto-Calibration Disabled, Analog Input Buffer Disabled
   //byte status_data = 0x07; // 01h = 0000 0 1 1 1 => status: Most Significant Bit First, Auto-Calibration Enabled, Analog Input Buffer Enabled
   SPI.transfer(0x50 | status_reg);
   SPI.transfer(0x00);   // 2nd command byte, write one register only
@@ -108,14 +123,44 @@ void Ads1256::init(){
 void Ads1256::readchannel(float adc_val[8], int channel_p,int channel_n){
   
   unsigned long adc_val1=0; 
-  int i;  
+  int i; 
+  int a=0; 
  
-  while (digitalRead(rdy)) {}
+  //while (digitalRead(rdy)) {}
+  
+  while (a) {
+    int b[disp];
+    a=1;
+    for(i=0; i < disp ; i++){
+      b[i]=digitalRead(rdy[i]);
+      a=a*b[i];
+    }
+  }
+  a=0;
+
+
+
+
   delayMicroseconds(2); 
   writeregchannel(channel_p,channel_n);
   sync();
   wakeup();
-  while (digitalRead(rdy)!=0) {}
+
+  //while (digitalRead(rdy)!=0) {}
+
+  while (a) {
+    int b[disp];
+    a=1;
+    for(i=0; i < disp ; i++){
+      b[i]=digitalRead(rdy[i]);
+      a=a*b[i];
+    }
+  }
+  a=0;
+
+
+
+
   for(i=0; i < disp ; i++){
     digitalWrite(cs[i], HIGH);
   }

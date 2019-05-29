@@ -20,8 +20,10 @@ void readreg(byte reg, byte data[8]);
 void writereg(byte reg, byte data[8]);
 void writeregchannel(int channel_p,int channel_n);
 float ca2(unsigned long val);
+void status();
 void adcon(int gain, int clockout, int sensorcurrent);
 void dataratesetting(int datarate);
+void GpioControlRegister(int DIR3, int DIR2, int DIR1, int DIR0, int DI03, int DI02, int DI01, int DI00);
 
 void wakeup(){ 
   SPI.transfer(0x00);
@@ -116,6 +118,13 @@ void writereg(byte reg, byte data){
   
   delayMicroseconds(2);  
 }
+void status(){
+  byte channel = 0x02;
+  writereg(0x00, channel);
+  delayMicroseconds(2);
+
+}
+
 
 void writeregchannel(int channel_p,int channel_n){
   
@@ -202,4 +211,10 @@ void dataratesetting(int datarate){
   byte drate_data=dr[datarate];
   byte drate_reg = 0x03; //DRATE: A/D Data Rate (Address 03h)
   writereg(drate_reg, drate_data); 
+}
+
+void GpioControlRegister(int DIR3, int DIR2, int DIR1, int DIR0, int DI03, int DI02, int DI01, int DI00){
+  byte Gpio_data= 0x80*DIR3+0x40*DIR2+0x20*DIR1+0x10*DIR0+0x08* DI03+0x04*DI02+0x02*DI01+0x01*DI00;//dr[datarate];
+  byte Gpio_reg = 0x04; //I/O: GPIO Control Register (Address 04h)
+  writereg(Gpio_reg, Gpio_data); 
 }
