@@ -19,11 +19,13 @@ unsigned long readdata();
 void readreg(byte reg, byte data[8]);
 void writereg(byte reg, byte data[8]);
 void writeregchannel(int channel_p,int channel_n);
-float ca2(unsigned long val);
-void status();
+double ca2(unsigned long val);
+void status(int order, int acal, int bufen, int drdy);
 void adcon(int gain, int clockout, int sensorcurrent);
 void dataratesetting(int datarate);
 void GpioControlRegister(int DIR3, int DIR2, int DIR1, int DIR0, int DI03, int DI02, int DI01, int DI00);
+void waitDrdy(int disp, int rdy[8]);
+void csWrite(int disp, int cs[8]);
 
 void wakeup(){ 
   SPI.transfer(0x00);
@@ -118,10 +120,31 @@ void writereg(byte reg, byte data){
   
   delayMicroseconds(2);  
 }
-void status(){
-  byte channel = 0x02;
-  writereg(0x00, channel);
-  delayMicroseconds(2);
+void status(int order, int acal, int bufen, int drdy){
+  //BIT 7   BIT 6   BIT 5   BIT 4   BIT 3   BIT 2   BIT 1   BIT 0
+  //0       CLK1    CLK0    SDCS1   ORDER   ACAL    BUFEN   DRDY
+  byte ORDER[2] = {0x00,0x08};
+    //Bit 3 ORDER: Data Output Bit Order
+      //0 = Most Significant Bit First (default)
+      //1 = Least Significant Bit First
+      
+  byte ACAL[2] = {0x00,0x04};
+    //Bit 2 ACAL: Auto-Calibration
+      //0 = Auto-Calibration Disabled (default)
+      //1 = Auto-Calibration Enabled
+      
+  byte BUFEN[2] = {0x00,0x02};
+    //Bit 1 BUFEN: Analog Input Buffer Enable
+      //0 = Buffer Disabled (default)
+      //1 = Buffer Enabled
+
+  byte DRDY[2] = {0x00,0x01};
+    //Bit 0 DRDY: Data Ready (Read Only)
+      //This bit duplicates the state of the DRDY pin.
+
+  byte STATUS = ORDER[order]+ACAL[acal]+BUFEN[bufen]+DRDY[drdy];
+  writereg(0x00, STATUS);
+  delayMicroseconds(100);
 
 }
 
@@ -137,9 +160,9 @@ void writeregchannel(int channel_p,int channel_n){
   
 }
 
-float ca2(unsigned long val){
+double ca2(unsigned long val){
   unsigned long MSB=0;
-  float val1=0;
+  double val1=0;
 
   MSB=val;
   MSB >>= 23;
@@ -187,6 +210,7 @@ void adcon(int gain, int clockout, int sensorcurrent){
   byte adcon_reg = 0x02; //A/D Control Register (Address 02h)(datasheet p. 31)  
   byte adcon_data=clockoutrate[clockout]+sensordetectcurrent[sensorcurrent]+gainamplifiersetting[gain]; 
   writereg(adcon_reg, adcon_data);
+  delayMicroseconds(2000);
 }
 
 void dataratesetting(int datarate){
@@ -218,3 +242,22 @@ void GpioControlRegister(int DIR3, int DIR2, int DIR1, int DIR0, int DI03, int D
   byte Gpio_reg = 0x04; //I/O: GPIO Control Register (Address 04h)
   writereg(Gpio_reg, Gpio_data); 
 }
+
+void waitDrdy(int disp, int rdy[8]){
+  int i;
+  bool a;
+  while (a) {
+    a=0;
+    for(i=0; i < disp ; i++){
+      a=a+digitalRead(rdy[i]);
+    }
+  }
+}
+
+void csWrite(int disp, int cs[8], bool status){
+  int i;
+  for(i=0; i < disp ; i++){
+    digitalWrite(cs[i], status);
+  }
+}
+

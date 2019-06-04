@@ -16,11 +16,12 @@ class Ads1256{
       Ads1256(int disp, int cs[8], int rdy[8], int rst, unsigned long spispeed);
                               
       //metodos:
-      void ads1256config(int datarate, int gain, int clockout, int sensorcurrent);
-      void init();
-      void finish();
-      void readchannel(float adc_val2[8], int channel_p,int channel_n);      
-      
+      void ads1256config(int datarate, int gain[8], int clockout, int sensorcurrent, int order, int acal, int bufen, int drdy);
+      void readchannel(double adc_val2[8], int channel_p,int channel_n);      
+      void calibrate();
+      void standbyOn();
+      void standbyOff();
+      void setAdcon(int gain[8], int clockout, int sensorcurrent);
 };
 
 #endif
