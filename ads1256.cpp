@@ -15,10 +15,11 @@ Ads1256::Ads1256(int dis, int c[8], int rd[8], int rs, unsigned long sp){
   }
 }
 
-void Ads1256::ads1256config(int datarate, int gain[8], int clockout, int sensorcurrent, int order, int acal, int bufen, int drdy){
+void Ads1256::ads1256config(int datarate, int newGain[8], int clockout, int sensorcurrent, int order, int acal, int bufen, int drdy){
   int i;
 
   for(i=0; i < disp ; i++){
+    gain[i]=newGain[i];
     pinMode(rdy[i], INPUT);
     pinMode(cs[i], OUTPUT);
     digitalWrite(cs[i], LOW); // tied low is also OK.
@@ -40,27 +41,20 @@ void Ads1256::ads1256config(int datarate, int gain[8], int clockout, int sensorc
   delayMicroseconds(100);
   ads1256reset();
   status(order, acal, bufen, drdy);
-  setAdcon(gain, clockout, sensorcurrent);
   dataratesetting(datarate);
-  selfcal();
-  delayMicroseconds(5000);
-  sysgcal();
-  
-  while (!Serial && (millis ()  <=  5000));  // WAIT UP TO 5000 MILLISECONDS FOR SERIAL OUTPUT CONSOLE
+  waitDrdy(disp, rdy);
+  selfcal();  
+  setAdcon(gain, clockout, sensorcurrent);
 }
 
 void Ads1256::readchannel(double adc_val[8], int channel_p,int channel_n){
-  unsigned long adc_val1=0;
-  unsigned long adc_val2=0;
   int i;
   
   waitDrdy(disp, rdy);
   delayMicroseconds(2); 
   writeregchannel(channel_p,channel_n);
   sync();
-  //delayMicroseconds(2); 
   wakeup();
-  //waitDrdy(disp, rdy);
   csWrite(disp, cs, HIGH);
   
   for(i=0; i < disp ; i++){ 
@@ -70,6 +64,11 @@ void Ads1256::readchannel(double adc_val[8], int channel_p,int channel_n){
   }
 
   csWrite(disp, cs, LOW);
+}
+
+void Ads1256::voltageReadChannel(double adc_val[8], int channel_p,int channel_n){
+  readchannel(adc_val, channel_p, channel_n);
+  binaryVoltageConverter(adc_val, gain, disp);
 }
 
 void Ads1256::calibrate(){
@@ -105,13 +104,18 @@ void Ads1256::standbyOff(){
   delayMicroseconds(50);
 }
 
-void Ads1256::setAdcon(int gain[8], int clockout, int sensorcurrent){
+void Ads1256::setAdcon(int newGain[8], int clockout, int sensorcurrent){
   int i;
+
   csWrite(disp, cs, HIGH);
   for(i=0; i < disp ; i++){
+    gain[i]=newGain[i];
     digitalWrite(cs[i], LOW); 
     adcon(gain[i], clockout, sensorcurrent);
     digitalWrite(cs[i], HIGH);
   }
   csWrite(disp, cs, LOW);
+  waitDrdy(disp, rdy);
+  selfcal();
+  waitDrdy(disp, rdy);
 }

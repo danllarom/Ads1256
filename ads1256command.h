@@ -26,6 +26,8 @@ void dataratesetting(int datarate);
 void GpioControlRegister(int DIR3, int DIR2, int DIR1, int DIR0, int DI03, int DI02, int DI01, int DI00);
 void waitDrdy(int disp, int rdy[8]);
 void csWrite(int disp, int cs[8]);
+void binaryVoltageConverter(double value[8], int gain[8]);
+void VoltagebinaryConverter(double value[8], int gain[8], int disp);
 
 void wakeup(){ 
   SPI.transfer(0x00);
@@ -261,3 +263,20 @@ void csWrite(int disp, int cs[8], bool status){
   }
 }
 
+void binaryVoltageConverter(double value[8], int gain[8], int disp){
+  int i;
+  int PGA[7]={1, 2, 4, 8, 16, 32, 64};
+
+  for(i=0; i < disp ; i++){
+    value[i]=value[i]*(2.5*4)/(PGA[gain[i]]*(0xFFFFFF));
+  }
+}
+
+void VoltagebinaryConverter(double value[8], int gain[8], int disp){
+  int i;
+  int PGA[7]={1, 2, 4, 8, 16, 32, 64};
+
+  for(i=0; i < disp ; i++){
+    value[i]=value[i]/(2.5*4)/(PGA[gain[i]]*(0xFFFFFF));
+  }
+}
